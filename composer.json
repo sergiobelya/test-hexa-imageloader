@@ -1,7 +1,7 @@
 {
     "name": "sergiobelya/test-hexa-imageloader",
     "description": "This is the test task for Hexa company",
-    "version": "test-composer",
+    "version": "test-composer-0.2",
     "license": "MIT",
     "type": "library",
     "authors": [
