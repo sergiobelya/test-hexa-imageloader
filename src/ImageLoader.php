@@ -4,6 +4,7 @@ namespace sergiobelya\TestHexaImageloader;
 
 use sergiobelya\TestHexaImageloader\Exceptions\UrlException;
 use sergiobelya\TestHexaImageloader\Exceptions\ImageLoaderException;
+use sergiobelya\TestHexaImageloader\Exceptions\ImageValidateException;
 use Exception;
 
 /**
@@ -43,6 +44,11 @@ class ImageLoader
 
     protected $max_double_lastnames = 10;
 
+    /**
+     * @param string $folder path to uploaded folder
+     * @param \sergiobelya\TestHexaImageloader\HttpLoaderInterface $http_loader default new HttpCurlLoader()
+     * @throws Exception
+     */
     public function __construct($folder, HttpLoaderInterface $http_loader = null)
     {
         if (is_null($http_loader)) {
@@ -57,6 +63,10 @@ class ImageLoader
         $this->folder = $folder;
     }
 
+    /**
+     * validate and add images url from array
+     * @param array $img_urls
+     */
     public function setUrlsArray(array $img_urls)
     {
         foreach ($img_urls as $url) {
@@ -64,6 +74,11 @@ class ImageLoader
         }
     }
 
+    /**
+     * add url to array for loading
+     * @param string $url
+     * @throws UrlException
+     */
     public function addUrl($url)
     {
         $url = trim($url);
@@ -73,14 +88,16 @@ class ImageLoader
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
             throw new UrlException($url);
         }
-        $arr_url = explode('.', $url);
-        $ext = array_pop($arr_url);
+        $ext = pathinfo($url, PATHINFO_EXTENSION);
         if (!in_array(strtolower($ext), self::$allowed_ext)) {
             throw new UrlException($url);
         }
         $this->img_urls[] = $url;
     }
 
+    /**
+     * start loading images
+     */
     public function loadAllImages()
     {
         $this->urls2pathes();
@@ -149,13 +166,23 @@ class ImageLoader
         return $rel_path;
     }
 
-    protected function loadImage($url, $tmp_path) {
+    protected function loadImage($url, $rel_path) {
+        $path = $this->folder . $rel_path;
         $content = $this->http_loader->load($url);
-        $writed_bytes = file_put_contents($this->folder.$tmp_path, $content);
+        $writed_bytes = file_put_contents($path, $content);
         if (false === $writed_bytes) {
             throw new Exception;
         }
+        $this->validImage($path);
         return $writed_bytes;
     }
 
+    protected function validImage($path)
+    {
+        $real_imagetype = exif_imagetype($path);
+        if (!$real_imagetype || !key_exists($real_imagetype, self::$allowed_image_types)) {
+            unlink($path);
+            throw new ImageValidateException();
+        }
+    }
 }
