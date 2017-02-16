@@ -85,6 +85,7 @@ class ImageLoader
             $this->loadImage($url, $path);
             unset($this->img_pathes[$url]);
         }
+        $this->img_urls = [];
     }
 
     /**
@@ -118,14 +119,29 @@ class ImageLoader
         switch ($this->url_to_filename) {
             case self::URL_TO_FILENAME_LAST_NAME :
             default :
-                $url_arr = explode('/', $url);
-                $last_fragment = array_pop($url_arr);
-                $i = 0;
-                do {
-                    ++$i;
-                    $rel_path = $i > 1 ? $last_fragment . '_' . $i : $last_fragment;
-                } while (in_array($rel_path, $this->img_pathes) || file_exists($this->folder . $rel_path));
+                $rel_path = $this->url2filenameByLastname($url);
                 break;
+        }
+        return $rel_path;
+    }
+
+    protected function url2filenameByLastname($url)
+    {
+        $url_arr = explode('/', $url);
+        $last_fragment = array_pop($url_arr);
+        if (!in_array($last_fragment, $this->img_pathes) && !file_exists($this->folder . $last_fragment)) {
+            $rel_path = $last_fragment;
+        } else {
+            $i = 0;
+            $arr_filename = explode('.', $last_fragment);
+            $ext = array_pop($arr_filename);
+            $name = implode('.', $arr_filename);
+            do {
+                if (++$i > $this->max_double_lastnames) {
+                    throw new ImageLoaderException('max_double_lastnames limited for url '.$url);
+                }
+                $rel_path = $i > 1 ? ($name . '_' . $i . '.' . $ext) : $last_fragment;
+            } while (in_array($rel_path, $this->img_pathes) || file_exists($this->folder . $rel_path));
         }
         return $rel_path;
     }
