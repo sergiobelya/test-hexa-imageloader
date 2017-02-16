@@ -2,7 +2,7 @@
 
 ## Installing
 ```
-composer require sergiobelya/test-hexa-imageloader
+composer require sergiobelya/test-hexa-imageloader:">=0.9"
 ```
 
 ## Examples of use

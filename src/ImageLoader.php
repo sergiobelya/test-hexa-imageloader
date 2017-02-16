@@ -44,6 +44,11 @@ class ImageLoader
 
     protected $max_double_lastnames = 10;
 
+    /**
+     * @param string $folder path to uploaded folder
+     * @param \sergiobelya\TestHexaImageloader\HttpLoaderInterface $http_loader default new HttpCurlLoader()
+     * @throws Exception
+     */
     public function __construct($folder, HttpLoaderInterface $http_loader = null)
     {
         if (is_null($http_loader)) {
@@ -58,6 +63,10 @@ class ImageLoader
         $this->folder = $folder;
     }
 
+    /**
+     * validate and add images url from array
+     * @param array $img_urls
+     */
     public function setUrlsArray(array $img_urls)
     {
         foreach ($img_urls as $url) {
@@ -65,6 +74,11 @@ class ImageLoader
         }
     }
 
+    /**
+     * add url to array for loading
+     * @param string $url
+     * @throws UrlException
+     */
     public function addUrl($url)
     {
         $url = trim($url);
@@ -81,6 +95,9 @@ class ImageLoader
         $this->img_urls[] = $url;
     }
 
+    /**
+     * start loading images
+     */
     public function loadAllImages()
     {
         $this->urls2pathes();
