@@ -43,12 +43,15 @@ class ImageLoader
 
     protected $max_double_lastnames = 10;
 
-    public function __construct(HttpLoaderInterface $http_loader, $folder)
+    public function __construct($folder, HttpLoaderInterface $http_loader = null)
     {
+        if (is_null($http_loader)) {
+            $http_loader = new HttpCurlLoader();
+        }
         $this->http_loader = $http_loader;
         if (!is_dir($folder)) {
             if (!mkdir($folder, 0775, true)) {
-                throw new ImageLoaderException("Folder $folder is not created");
+                throw new Exception("Folder $folder is not created");
             }
         }
         $this->folder = $folder;
