@@ -4,6 +4,7 @@ namespace sergiobelya\TestHexaImageloader;
 
 use sergiobelya\TestHexaImageloader\Exceptions\UrlException;
 use sergiobelya\TestHexaImageloader\Exceptions\ImageLoaderException;
+use sergiobelya\TestHexaImageloader\Exceptions\ImageValidateException;
 use Exception;
 
 /**
@@ -73,8 +74,7 @@ class ImageLoader
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
             throw new UrlException($url);
         }
-        $arr_url = explode('.', $url);
-        $ext = array_pop($arr_url);
+        $ext = pathinfo($url, PATHINFO_EXTENSION);
         if (!in_array(strtolower($ext), self::$allowed_ext)) {
             throw new UrlException($url);
         }
@@ -149,13 +149,23 @@ class ImageLoader
         return $rel_path;
     }
 
-    protected function loadImage($url, $tmp_path) {
+    protected function loadImage($url, $rel_path) {
+        $path = $this->folder . $rel_path;
         $content = $this->http_loader->load($url);
-        $writed_bytes = file_put_contents($this->folder.$tmp_path, $content);
+        $writed_bytes = file_put_contents($path, $content);
         if (false === $writed_bytes) {
             throw new Exception;
         }
+        $this->validImage($path);
         return $writed_bytes;
     }
 
+    protected function validImage($path)
+    {
+        $real_imagetype = exif_imagetype($path);
+        if (!$real_imagetype || !key_exists($real_imagetype, self::$allowed_image_types)) {
+            unlink($path);
+            throw new ImageValidateException();
+        }
+    }
 }
