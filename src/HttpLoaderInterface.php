@@ -8,5 +8,9 @@ namespace sergiobelya\TestHexaImageloader;
  */
 interface HttpLoaderInterface
 {
+    /**
+     * @param string $url
+     * @return string loaded data
+     */
     public function load($url);
 }
